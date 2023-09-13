@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
 import genanki
-import random
 import os
 from funcoes_auxiliares import gerar_cor_aleatoria, percentual
 from webscraping import download_images
@@ -21,6 +20,7 @@ if __name__ == '__main__':
             quantidade_cards = 2     #Quantos cards quer fazer
             listafrases = []
             listasignificados = []
+            listafrases_traduzidas = []
             dicio_sig_frequencias = {}
             palavra_pesquisada = i.strip().lower()
 
@@ -34,6 +34,7 @@ if __name__ == '__main__':
             try:
                 frases = soup.find_all('div', class_= 'src ltr')
                 significados = soup.find_all('span', class_= 'display-term')
+                frases_traduzidas = soup.find_all('div', class_= 'trg ltr')
             except:
                 continue
             frequencias = soup.find_all(attrs={"data-freq": True})
@@ -65,6 +66,8 @@ if __name__ == '__main__':
             listasignificados = list(dicio_sig_frequencias.values())
             for frase in frases:
                listafrases.append(frase.text.strip())
+            for frase_traduzida in frases_traduzidas:
+                listafrases_traduzidas.append(frase_traduzida.text.strip())
             if len(listasignificados) == 0:
                 continue
             ### Gera os cards ###
@@ -73,13 +76,14 @@ if __name__ == '__main__':
                 random_color = gerar_cor_aleatoria()
                 fraseatual =  listafrases[i]
                 fraseatual = fraseatual.replace(palavra_pesquisada, f'<span style="color:{random_color}">{palavra_pesquisada}</span>') 
+                frase_traduzida_atual = f'<span style="font-style: italic;">{listafrases_traduzidas[i]}</span>'
                 imagem_atual = palavra_pesquisada + str(i+1)+'.jpg'
 
                 nota = genanki.Note(
                     model=modelo_card,
-                    fields=[fraseatual, f'{listasignificados[0]}, {listasignificados[1]}, {listasignificados[2]} <br> <img src="{imagem_atual}">'] if len(listasignificados) >= 3 else [fraseatual, f'{listasignificados[0]} <br> <img src="{imagem_atual}">']
-
+                    fields=[fraseatual, f'{listasignificados[0]}, {listasignificados[1]}, {listasignificados[2]} <br> <br> <img src="{imagem_atual}"> <br> {frase_traduzida_atual}'] if len(listasignificados) >= 3 else [fraseatual, f'{listasignificados[0]} <br> <br> <img src="{imagem_atual}"> <br> {frase_traduzida_atual}']
                     )
+                
                 print(fraseatual)
                 if len(listafrequencias) >= 3:        
                     print(f'{listasignificados[0]}, {listasignificados[1]}, {listasignificados[2]}')
